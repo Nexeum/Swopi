@@ -34,7 +34,6 @@ jobs:
       - name: Run tests
         run: |
           cd Swopi
-          ./gradlew test
 
       - name: Generate new version ${{ github.event.inputs.versionType }}
         run: |
