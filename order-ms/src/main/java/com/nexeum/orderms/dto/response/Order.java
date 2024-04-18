@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class Order {
-    private String orderId;
+    private Long orderId;
     private BigDecimal totalOrderPrice;
     private String orderStatus;
     List<ProductItem> orderItems;

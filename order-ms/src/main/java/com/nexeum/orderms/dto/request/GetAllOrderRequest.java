@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class GetAllOrderRequest {
-    private String cartId;
+    private Long cartId;
 }

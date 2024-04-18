@@ -15,7 +15,7 @@ public class ProductOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
-    private String cartId;
+    private Long cartId;
     private BigDecimal totalOrderPrice;
     private String orderStatus;
     @OneToMany(cascade = CascadeType.ALL)
