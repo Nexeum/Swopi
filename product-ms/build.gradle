@@ -7,6 +7,18 @@ plugins {
 group = 'com.nexeum'
 version = '0.0.1-SNAPSHOT'
 
+plugins {
+    id "org.sonarqube" version "4.4.1.3373"
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "Nexeum_Swopi"
+        property "sonar.organization", "nexeum"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
+
 java {
     sourceCompatibility = '17'
 }
