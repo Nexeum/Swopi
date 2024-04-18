@@ -9,6 +9,9 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: ${{ fromJson(steps.get-dirs.outputs.dirs) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -17,8 +20,13 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
+      - name: Get directories
+        id: get-dirs
+        run: echo "::set-output name=dirs::$(find . -mindepth 1 -maxdepth 1 -type d -not -path './.github' -not -path './.git' -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')"
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: ${{ matrix.dir }}
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
