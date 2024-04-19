@@ -9,15 +9,6 @@ plugins {
 group = 'com.nexeum'
 version = '0.0.1-SNAPSHOT'
 
-jar {
-    manifest {
-        attributes(
-            'Class-Path': configurations.compileClasspath.collect { it.getName() }.join(' '),
-            'Main-Class': 'com.nexeum.productms.Application'
-        )
-    }
-}
-
 sonar {
     properties {
         property "sonar.projectKey", "Nexeum_Swopi"
@@ -59,4 +50,8 @@ jacocoTestReport {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+bootJar {
+    mainClass = 'com.nexeum.productms.ProductMsApplication'
 }
