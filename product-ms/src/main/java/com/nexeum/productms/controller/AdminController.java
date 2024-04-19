@@ -21,13 +21,13 @@ public class AdminController {
     }
 
     @PostMapping("/add-product")
-    public ResponseEntity<?> addProduct(@Valid @RequestParam("imageFile") MultipartFile imageFile,
-                                        @Valid @RequestParam("name") String name,
-                                        @Valid @RequestParam("description") String description,
-                                        @Valid @RequestParam("brandName") String brandName,
-                                        @Valid @RequestParam("pricePerUnit") BigDecimal pricePerUnit,
-                                        @Valid @RequestParam("productWholeSalePrice") BigDecimal productWholeSalePrice,
-                                        @Valid @RequestParam("noOfStocks") Long noOfStocks) {
+    public ResponseEntity<Object> addProduct(@Valid @RequestParam("imageFile") MultipartFile imageFile,
+                                              @Valid @RequestParam("name") String name,
+                                              @Valid @RequestParam("description") String description,
+                                              @Valid @RequestParam("brandName") String brandName,
+                                              @Valid @RequestParam("pricePerUnit") BigDecimal pricePerUnit,
+                                              @Valid @RequestParam("productWholeSalePrice") BigDecimal productWholeSalePrice,
+                                              @Valid @RequestParam("noOfStocks") Long noOfStocks) {
         return productService.addProduct(imageFile, name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks);
     }
 }

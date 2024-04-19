@@ -16,7 +16,7 @@ public class WebController {
     }
 
     @GetMapping("/all-products")
-    public ResponseEntity<?> getAllProducts() {
+    public ResponseEntity<Object> getAllProducts() {
         return productService.getAllProducts();
     }
 }

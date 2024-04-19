@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<?> addProduct(MultipartFile imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
+    public ResponseEntity<Object> addProduct(MultipartFile imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
         ServiceResponse response = new ServiceResponse();
         try {
             Product product = new Product();
@@ -89,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<?> getAllProducts() {
+    public ResponseEntity<Object> getAllProducts() {
         ServiceResponse response = new ServiceResponse();
         try {
             List<Product> allProducts = productRepository.findAll();
