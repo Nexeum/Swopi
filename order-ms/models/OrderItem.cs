@@ -16,6 +16,6 @@ namespace order_ms.models
         public string? ProductImageUrl { get; set; } = string.Empty;
 
         [ForeignKey("OrderId")]
-        public ProductOrder Order { get; set; }
+        public ProductOrder? Order { get; set; }
     }
 }
