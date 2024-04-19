@@ -7,15 +7,16 @@ namespace order_ms.models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
-        public long ProductId { get; set; }
-        public string? ProductName { get; set; } = string.Empty;
-        public long ProductQuantity { get; set; }
-        public decimal TotalPrice { get; set; }
-        public decimal PricePerUnit { get; set; }
-        public string? ProductImageUrl { get; set; } = string.Empty;
-
+        public long Id { get; init; }
+        public long ProductId { get; init; }
+        [StringLength(200)]
+        public string? ProductName { get; init; } = string.Empty;
+        public long ProductQuantity { get; init; }
+        public decimal TotalPrice { get; init; }
+        public decimal PricePerUnit { get; init; }
+        [StringLength(200)]
+        public string? ProductImageUrl { get; init; } = string.Empty;
         [ForeignKey("OrderId")]
-        public ProductOrder? Order { get; set; }
+        public ProductOrder? Order { get; init; }
     }
 }
