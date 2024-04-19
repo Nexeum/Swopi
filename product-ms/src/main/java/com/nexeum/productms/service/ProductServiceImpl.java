@@ -5,7 +5,8 @@ import com.nexeum.productms.entity.Product;
 import com.nexeum.productms.repository.ProductRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,6 +31,8 @@ import java.util.List;
 @Slf4j
 public class ProductServiceImpl implements ProductService {
     private S3Client s3client;
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     @Value("${aws.endpointUrl}")
     private String endpointUrl;
@@ -45,9 +46,6 @@ public class ProductServiceImpl implements ProductService {
     @Value("${aws.secretKey}")
     private String secretKey;
 
-    @Value("$createdawsendpointUrl}")
-    private String createdawsendpointUrl;
-
     @PostConstruct
     private void initializeAmazon() {
         AwsCredentials credentials = AwsBasicCredentials.create(this.accessKey, this.secretKey);
@@ -57,8 +55,11 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     @Override
     public ResponseEntity<?> addProduct(MultipartFile imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
@@ -77,12 +78,12 @@ public class ProductServiceImpl implements ProductService {
             productRepository.save(product);
             response.setCode("200");
             response.setResponse("Product added successfully");
-            return new ResponseEntity<ServiceResponse>(response, HttpStatus.OK);
+            return new ResponseEntity<>(response, HttpStatus.OK);
 
         } catch (Exception e) {
             response.setCode("501");
             response.setResponse("Internal server error");
-            return new ResponseEntity<ServiceResponse>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -92,16 +93,16 @@ public class ProductServiceImpl implements ProductService {
         try {
             List<Product> allProducts = productRepository.findAll();
             if (!(allProducts.isEmpty())) {
-                return new ResponseEntity<List<Product>>(allProducts, HttpStatus.OK);
+                return new ResponseEntity<>(allProducts, HttpStatus.OK);
             } else {
                 response.setCode("404");
                 response.setResponse("No products found");
-                return new ResponseEntity<ServiceResponse>(response, HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
             response.setCode("501");
             response.setResponse("Internal server error");
-            return new ResponseEntity<ServiceResponse>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -110,25 +111,36 @@ public class ProductServiceImpl implements ProductService {
         try {
             File file = convertMultiPartToFile(imageFile);
             String filename = generateFileName(imageFile);
-            imageUrl = bucketName + createdawsendpointUrl + "/" + filename;
+            imageUrl = bucketName + endpointUrl + "/" + filename;
             uploadFileTos3bucket(filename, file);
-            file.delete();
+            boolean isDeleted = file.delete();
+            if (!isDeleted) {
+                logger.error("Failed to delete file: " + file.getName());
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error occurred while uploading image to S3 bucket", e);
         }
         return imageUrl;
     }
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convertedFile = new File(file.getOriginalFilename());
-        FileOutputStream fos = new FileOutputStream(convertedFile);
-        fos.write(file.getBytes());
-        fos.close();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("Uploaded file does not have a name");
+        }
+        File convertedFile = new File(originalFilename);
+        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
+            fos.write(file.getBytes());
+        }
         return convertedFile;
     }
 
     private String generateFileName(MultipartFile multiPart) {
-        return new Date().getTime() + "-" + multiPart.getOriginalFilename().replace(" ", "_");
+        String originalFilename = multiPart.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new IllegalArgumentException("Uploaded file does not have a name");
+        }
+        return new Date().getTime() + "-" + originalFilename.replace(" ", "_");
     }
 
     private void uploadFileTos3bucket(String fileName, File file) {
@@ -139,15 +151,5 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         s3client.putObject(putObjectRequest, file.toPath());
-    }
-
-    public String deleteFileFromS3Bucket(String fileUrl) {
-        String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
-        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
-                .bucket(bucketName)
-                .key(fileName)
-                .build();
-        s3client.deleteObject(deleteObjectRequest);
-        return "Successfully deleted";
     }
 }
