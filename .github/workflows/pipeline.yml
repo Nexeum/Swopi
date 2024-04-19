@@ -23,12 +23,12 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Build product-ms
         run: |
@@ -84,9 +84,9 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Deploy order-ms
-        run: dotnet order-ms/bin/*.dll
+        run: dotnet order-ms/bin/net8.0/runtimes/*.dll
 
   deploy-swopiui:
     name: Deploy SwopiUI
@@ -100,7 +100,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Deploy SwopiUI
         run: |
           cd swopiUI/public
