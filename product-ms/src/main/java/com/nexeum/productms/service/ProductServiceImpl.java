@@ -10,8 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -21,12 +25,10 @@ import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.util.Date;
-import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -63,95 +65,99 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<Object> addProduct(MultipartFile imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
-        ServiceResponse response = new ServiceResponse();
-        try {
-            Product product = new Product();
-
-            product.setName(name);
-            product.setDescription(description);
-            product.setBrandName(brandName);
-            product.setPricePerUnit(pricePerUnit);
-            product.setProductWholeSalePrice(productWholeSalePrice);
-            product.setNoOfStocks(noOfStocks);
-            String imageUrl = uploadImage(imageFile);
-            product.setProductImageUrl(imageUrl);
-            productRepository.save(product);
-            response.setCode("200");
-            response.setResponse("Product added successfully");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-        } catch (Exception e) {
-            response.setCode("501");
-            response.setResponse("Internal server error");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public Mono<ResponseEntity<ServiceResponse>> addProduct(Mono<FilePart> imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
+        return Mono.fromCallable(() -> uploadImage((MultipartFile) imageFile))
+                .map(imageUrl -> {
+                    Product product = new Product();
+                    product.setName(name);
+                    product.setDescription(description);
+                    product.setBrandName(brandName);
+                    product.setPricePerUnit(pricePerUnit);
+                    product.setProductWholeSalePrice(productWholeSalePrice);
+                    product.setNoOfStocks(noOfStocks);
+                    product.setProductImageUrl(String.valueOf(imageUrl));
+                    return product;
+                })
+                .flatMap(productRepository::save)
+                .map(product -> {
+                    ServiceResponse response = new ServiceResponse("200", "Product added successfully");
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                })
+                .onErrorReturn(new ResponseEntity<>(new ServiceResponse("501", "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @Override
-    public ResponseEntity<Object> getAllProducts() {
-        ServiceResponse response = new ServiceResponse();
-        try {
-            List<Product> allProducts = productRepository.findAll();
-            if (!(allProducts.isEmpty())) {
-                return new ResponseEntity<>(allProducts, HttpStatus.OK);
-            } else {
-                response.setCode("404");
-                response.setResponse("No products found");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            response.setCode("501");
-            response.setResponse("Internal server error");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public Flux<Product> getAllProducts() {
+        return productRepository.findAll()
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No products found")))
+                .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error")));
     }
 
-    public String uploadImage(MultipartFile imageFile) {
-        String imageUrl = "";
-        try {
-            File file = convertMultiPartToFile(imageFile);
-            String filename = generateFileName(imageFile);
-            imageUrl = bucketName + endpointUrl + "/" + filename;
-            uploadFileTos3bucket(filename, file);
-            deleteTemporaryFile(file);
-        } catch (Exception e) {
-            logger.error("Error occurred while uploading image to S3 bucket", e);
-        }
-        return imageUrl;
+    public Mono<String> uploadImage(MultipartFile imageFile) {
+        return Mono.fromCallable(() -> convertMultiPartToFile(imageFile))
+                .map(file -> {
+                    String filename = generateFileName(imageFile);
+                    String imageUrl = bucketName + endpointUrl + "/" + filename;
+                    uploadFileTos3bucket(filename, file);
+                    deleteTemporaryFile(file);
+                    return imageUrl;
+                })
+                .onErrorResume(e -> {
+                    logger.error("Error occurred while uploading image to S3 bucket", e);
+                    return Mono.empty();
+                });
     }
 
     private void deleteTemporaryFile(File file) {
-        try {
-            Files.delete(file.toPath());
-        } catch (IOException e) {
-            logger.error("Failed to delete file: " + file.getName(), e);
+        if (file.exists()) {
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                logger.error("Failed to delete file: {}", file.getAbsolutePath(), e);
+            }
+        } else {
+            logger.warn("File does not exist: {}", file.getAbsolutePath());
         }
     }
 
-    private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convertedFile = Files.createTempFile(null, null).toFile();
-        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-            fos.write(file.getBytes());
+    private File convertMultiPartToFile(MultipartFile file) {
+        try {
+            File convertedFile = Files.createTempFile(null, null).toFile();
+            Files.write(convertedFile.toPath(), file.getBytes());
+            return convertedFile;
+        } catch (IOException e) {
+            logger.error("Failed to convert multipart file to file: {}", file.getOriginalFilename(), e);
+            return null;
         }
-        return convertedFile;
     }
+
 
     private String generateFileName(MultipartFile multiPart) {
         String originalFilename = multiPart.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file does not have a name");
         }
-        return new Date().getTime() + "-" + originalFilename.replace(" ", "_");
+        String uuid = UUID.randomUUID().toString();
+        String sanitizedFilename = originalFilename.replace(" ", "_");
+        return String.format("%s-%s", uuid, sanitizedFilename);
     }
 
     private void uploadFileTos3bucket(String fileName, File file) {
+        if (!file.exists()) {
+            logger.warn("File does not exist: {}", file.getAbsolutePath());
+            return;
+        }
+
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(fileName)
                 .acl(ObjectCannedACL.PUBLIC_READ)
                 .build();
 
-        s3client.putObject(putObjectRequest, file.toPath());
+        try {
+            s3client.putObject(putObjectRequest, file.toPath());
+        } catch (Exception e) {
+            logger.error("Failed to upload file to S3 bucket: {}", file.getAbsolutePath(), e);
+        }
     }
 }
