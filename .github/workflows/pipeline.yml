@@ -38,7 +38,7 @@ jobs:
       - name: Build order-ms
         run: |
           cd order-ms
-          dotnet build
+          dotnet build -o bin/
 
       - name: Build SwopiUI
         run: |
