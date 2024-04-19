@@ -1,21 +1,22 @@
 package com.nexeum.productms.controller;
 
+import com.nexeum.productms.dto.response.ServiceResponse;
 import com.nexeum.productms.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
 
 @ExtendWith(MockitoExtension.class)
 class AdminControllerTest {
@@ -29,21 +30,25 @@ class AdminControllerTest {
     @Test
     void testAddProduct() {
         // Arrange
-        MultipartFile imageFile = new MockMultipartFile("imageFile", new byte[]{});
-        String name = "Product Name";
-        String description = "Product Description";
-        String brandName = "Brand Name";
-        BigDecimal pricePerUnit = BigDecimal.valueOf(10.99);
-        BigDecimal productWholeSalePrice = BigDecimal.valueOf(8.99);
+        FilePart filePart = Mockito.mock(FilePart.class);
+        String name = "Test Product Name";
+        String description = "Test Product Description";
+        String brandName = "Test Brand Name";
+        BigDecimal pricePerUnit = BigDecimal.valueOf(99.99);
+        BigDecimal productWholeSalePrice = BigDecimal.valueOf(79.99);
         Long noOfStocks = 100L;
 
-        ResponseEntity<Object> expectedResponse = new ResponseEntity<>(HttpStatus.OK);
-        when(productService.addProduct(any(MultipartFile.class), anyString(), anyString(), anyString(), any(BigDecimal.class), any(BigDecimal.class), anyLong())).thenReturn(expectedResponse);
+        ServiceResponse serviceResponse = new ServiceResponse("200", "Product added successfully");
+        ResponseEntity<ServiceResponse> expectedResponse = ResponseEntity.ok(serviceResponse);
+        when(productService.addProduct(any(), anyString(), anyString(), anyString(), any(BigDecimal.class), any(BigDecimal.class), anyLong()))
+                .thenReturn(Mono.just(expectedResponse));
 
         // Act
-        ResponseEntity<Object> actualResponse = adminController.addProduct(imageFile, name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks);
+        Mono<ResponseEntity<ServiceResponse>> actualResponse = adminController.addProduct(Mono.just(filePart), name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks);
 
         // Assert
-        assertEquals(expectedResponse, actualResponse);
+        StepVerifier.create(actualResponse)
+                .expectNext(expectedResponse)
+                .verifyComplete();
     }
 }

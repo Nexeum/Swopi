@@ -1,23 +1,21 @@
 package com.nexeum.productms.service;
 
+import com.nexeum.productms.dto.response.ServiceResponse;
 import com.nexeum.productms.entity.Product;
 import com.nexeum.productms.repository.ProductRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import java.io.IOException;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import java.math.BigDecimal;
-import java.nio.file.Path;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,49 +26,66 @@ class ProductServiceImplTest {
 
     @Mock
     private ProductRepository productRepository;
-
-    @Mock
-    private S3Client s3Client;
-
     @InjectMocks
     private ProductServiceImpl productService;
 
-    private MultipartFile imageFile;
-    private String name;
-    private String description;
-    private String brandName;
-    private BigDecimal pricePerUnit;
-    private BigDecimal productWholeSalePrice;
-    private Long noOfStocks;
-
-    @BeforeEach
-    public void setUp() {
-        imageFile = mock(MultipartFile.class);
-        name = "Test Product";
-        description = "Test Description";
-        brandName = "Test Brand";
-        pricePerUnit = BigDecimal.valueOf(100);
-        productWholeSalePrice = BigDecimal.valueOf(80);
-        noOfStocks = 10L;
-    }
-
     @Test
     void testAddProduct() {
-        when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArguments()[0]);
+        Product product = new Product();
+        product.setName("Test Product Name");
+        product.setDescription("Test Product Description");
+        product.setBrandName("Test Brand Name");
+        product.setPricePerUnit(BigDecimal.valueOf(99.99));
+        product.setProductWholeSalePrice(BigDecimal.valueOf(79.99));
+        product.setNoOfStocks(100L);
 
-        ResponseEntity<Object> response = productService.addProduct(imageFile, name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks);
+        FilePart imageFile = Mockito.mock(FilePart.class);
+        Mono<FilePart> imageFileMono = Mono.just(imageFile);
 
-        verify(productRepository, times(1)).save(any(Product.class));
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(product));
+
+        Mono<ResponseEntity<ServiceResponse>> response = productService.addProduct(imageFileMono, product.getName(), product.getDescription(), product.getBrandName(), product.getPricePerUnit(), product.getProductWholeSalePrice(), product.getNoOfStocks());
+
+        StepVerifier.create(response)
+                .assertNext(res -> {
+                    assertEquals(HttpStatus.OK, res.getStatusCode());
+                    verify(productRepository, times(1)).save(any(Product.class));
+                })
+                .verifyComplete();
     }
 
     @Test
     void testGetAllProducts() {
-        when(productRepository.findAll()).thenReturn(Collections.emptyList());
+        String name = "Test Product Name";
+        String description = "Test Product Description";
+        String brandName = "Test Brand Name";
+        BigDecimal pricePerUnit = BigDecimal.valueOf(99.99);
+        BigDecimal productWholeSalePrice = BigDecimal.valueOf(79.99);
+        Long noOfStocks = 100L;
 
-        ResponseEntity<Object> response = productService.getAllProducts();
+        Product product = new Product();
+        product.setName(name);
+        product.setDescription(description);
+        product.setBrandName(brandName);
+        product.setPricePerUnit(pricePerUnit);
+        product.setProductWholeSalePrice(productWholeSalePrice);
+        product.setNoOfStocks(noOfStocks);
+
+        when(productRepository.findAll()).thenReturn(Flux.just(product));
+
+        Flux<Product> products = productService.getAllProducts();
+
+        StepVerifier.create(products)
+                .assertNext(prod -> {
+                    assertEquals(name, prod.getName());
+                    assertEquals(description, prod.getDescription());
+                    assertEquals(brandName, prod.getBrandName());
+                    assertEquals(pricePerUnit, prod.getPricePerUnit());
+                    assertEquals(productWholeSalePrice, prod.getProductWholeSalePrice());
+                    assertEquals(noOfStocks, prod.getNoOfStocks());
+                })
+                .verifyComplete();
 
         verify(productRepository, times(1)).findAll();
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 }
