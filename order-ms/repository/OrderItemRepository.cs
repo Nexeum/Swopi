@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using OrderMs.Models;
-
-namespace OrderMs.Repository
+using order_ms.models;
+namespace order_ms.repository
 {
     public class OrderItemRepository : DbContext
     {

@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OrderMs.Dto.Request;
-using OrderMs.Dto.Response;
-using OrderMs.Models;
-using OrderMs.Repository;
+using order_ms.dto.request;
+using order_ms.dto.response;
+using order_ms.models;
+using order_ms.repository;
 
-namespace OrderMs.Service
+namespace order_ms.service
 {
     public class OrderService : IOrderService
     {
@@ -30,7 +25,7 @@ namespace OrderMs.Service
                 {
                     CartId = request.CartId,
                     OrderStatus = "In progress",
-                    OrderItems = request.OrderItems.Select(oi => new OrderItem
+                    OrderItems = (request.OrderItems ?? new List<OrderProductItem>()).Select(oi => new OrderItem
                     {
                         ProductId = oi.ProductId,
                         ProductName = oi.ProductName,
@@ -66,6 +61,14 @@ namespace OrderMs.Service
             try
             {
                 var productOrder = await _productOrderRepository.ProductOrders.FindAsync(request.OrderId);
+
+                if (productOrder == null)
+                {
+                    serviceResponse.Code = "404";
+                    serviceResponse.Message = "Order not found";
+                    return new NotFoundObjectResult(serviceResponse);
+                }
+
                 productOrder.OrderStatus = "Cancelled";
 
                 _productOrderRepository.ProductOrders.Update(productOrder);
@@ -89,7 +92,7 @@ namespace OrderMs.Service
         {
             try
             {
-                var allOrders = await _productOrderRepository.FindByCartId(request.CartId);
+                var allOrders = await _productOrderRepository.FindByCartIdAsync(request.CartId);
 
                 if (allOrders.Any())
                 {

@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using OrderMs.Models;
-using System.Collections.Generic;
-using System.Linq;
+using order_ms.models;
 
-namespace OrderMs.Repository
+namespace order_ms.repository
 {
     public class ProductOrderRepository : DbContext
     {
@@ -17,6 +15,11 @@ namespace OrderMs.Repository
         public List<ProductOrder> FindByCartId(long cartId)
         {
             return ProductOrders.Where(po => po.CartId == cartId).ToList();
+        }
+        
+         public async Task<List<ProductOrder>> FindByCartIdAsync(long cartId)
+        {
+            return await ((IQueryable<ProductOrder>)ProductOrders).Where(po => po.CartId == cartId).ToListAsync();
         }
     }
 }

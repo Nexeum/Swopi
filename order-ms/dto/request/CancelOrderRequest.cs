@@ -1,4 +1,4 @@
-namespace OrderMs.Dto.Request
+namespace order_ms.dto.request
 {
     public class CancelOrderRequest
     {
