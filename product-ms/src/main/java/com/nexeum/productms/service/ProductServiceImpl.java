@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,11 +25,9 @@ import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -66,8 +65,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Mono<ResponseEntity<Object>> addProduct(MultipartFile imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
-        return Mono.fromCallable(() -> uploadImage(imageFile))
+    public Mono<ResponseEntity<ServiceResponse>> addProduct(Mono<FilePart> imageFile, String name, String description, String brandName, BigDecimal pricePerUnit, BigDecimal productWholeSalePrice, Long noOfStocks) {
+        return Mono.fromCallable(() -> uploadImage((MultipartFile) imageFile))
                 .map(imageUrl -> {
                     Product product = new Product();
                     product.setName(name);
@@ -76,14 +75,12 @@ public class ProductServiceImpl implements ProductService {
                     product.setPricePerUnit(pricePerUnit);
                     product.setProductWholeSalePrice(productWholeSalePrice);
                     product.setNoOfStocks(noOfStocks);
-                    product.setProductImageUrl(imageUrl);
+                    product.setProductImageUrl(String.valueOf(imageUrl));
                     return product;
                 })
                 .flatMap(productRepository::save)
                 .map(product -> {
-                    ServiceResponse response = new ServiceResponse();
-                    response.setCode("200");
-                    response.setResponse("Product added successfully");
+                    ServiceResponse response = new ServiceResponse("200", "Product added successfully");
                     return new ResponseEntity<>(response, HttpStatus.OK);
                 })
                 .onErrorReturn(new ResponseEntity<>(new ServiceResponse("501", "Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR));

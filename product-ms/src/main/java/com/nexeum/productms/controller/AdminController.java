@@ -1,5 +1,6 @@
 package com.nexeum.productms.controller;
 
+import com.nexeum.productms.dto.response.ServiceResponse;
 import com.nexeum.productms.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -31,13 +32,13 @@ public class AdminController {
     }
 
     @PostMapping(value = "/add-product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<ResponseEntity<Object>> addProduct(@Valid @RequestPart("imageFile") Mono<FilePart> imageFile,
-                                                   @NotBlank @RequestPart("name") String name,
-                                                   @NotBlank @RequestPart("description") String description,
-                                                   @NotBlank @RequestPart("brandName") String brandName,
-                                                   @NotNull @Positive @RequestPart("pricePerUnit") BigDecimal pricePerUnit,
-                                                   @NotNull @Positive @RequestPart("productWholeSalePrice") BigDecimal productWholeSalePrice,
-                                                   @NotNull @Positive @RequestPart("noOfStocks") Long noOfStocks) {
+    public Mono<ResponseEntity<ServiceResponse>> addProduct(@Valid @RequestPart("imageFile") Mono<FilePart> imageFile,
+                                                            @NotBlank @RequestPart("name") String name,
+                                                            @NotBlank @RequestPart("description") String description,
+                                                            @NotBlank @RequestPart("brandName") String brandName,
+                                                            @NotNull @Positive @RequestPart("pricePerUnit") BigDecimal pricePerUnit,
+                                                            @NotNull @Positive @RequestPart("productWholeSalePrice") BigDecimal productWholeSalePrice,
+                                                            @NotNull @Positive @RequestPart("noOfStocks") Long noOfStocks) {
         return productService.addProduct(imageFile, name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks)
                 .flatMap(Mono::just)
                 .onErrorResume(e -> {
