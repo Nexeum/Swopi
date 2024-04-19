@@ -9,7 +9,7 @@ plugins {
 group = 'com.nexeum'
 version = '0.0.1-SNAPSHOT'
 
-bootJar {
+application {
     mainClassName = 'com.nexeum.productms.Application'
 }
 
