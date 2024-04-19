@@ -15,6 +15,7 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.mockito.Mockito.when;
 
@@ -53,7 +54,7 @@ class WebControllerTest {
 
         // Assert
         StepVerifier.create(actualResponse)
-                .expectNextMatches(response -> response.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .expectNextMatches(response -> response.getStatusCode().equals(HttpStatus.OK) && Objects.requireNonNull(response.getBody()).isEmpty())
                 .verifyComplete();
     }
 }

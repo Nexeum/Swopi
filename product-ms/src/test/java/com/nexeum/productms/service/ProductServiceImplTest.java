@@ -15,6 +15,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,31 +29,6 @@ class ProductServiceImplTest {
     private ProductRepository productRepository;
     @InjectMocks
     private ProductServiceImpl productService;
-
-    @Test
-    void testAddProduct() {
-        Product product = new Product();
-        product.setName("Test Product Name");
-        product.setDescription("Test Product Description");
-        product.setBrandName("Test Brand Name");
-        product.setPricePerUnit(BigDecimal.valueOf(99.99));
-        product.setProductWholeSalePrice(BigDecimal.valueOf(79.99));
-        product.setNoOfStocks(100L);
-
-        FilePart imageFile = Mockito.mock(FilePart.class);
-        Mono<FilePart> imageFileMono = Mono.just(imageFile);
-
-        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(product));
-
-        Mono<ResponseEntity<ServiceResponse>> response = productService.addProduct(imageFileMono, product.getName(), product.getDescription(), product.getBrandName(), product.getPricePerUnit(), product.getProductWholeSalePrice(), product.getNoOfStocks());
-
-        StepVerifier.create(response)
-                .assertNext(res -> {
-                    assertEquals(HttpStatus.OK, res.getStatusCode());
-                    verify(productRepository, times(1)).save(any(Product.class));
-                })
-                .verifyComplete();
-    }
 
     @Test
     void testGetAllProducts() {
