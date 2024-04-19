@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OrderMs.Dto.Request;
-using OrderMs.Dto.Response;
-using OrderMs.Models;
-using OrderMs.Repository;
+using order_ms.dto.request;
+using order_ms.dto.response;
+using order_ms.models;
+using order_ms.repository;
 
-namespace OrderMs.Service
+namespace order_ms.service
 {
     public class OrderService : IOrderService
     {
@@ -89,7 +84,7 @@ namespace OrderMs.Service
         {
             try
             {
-                var allOrders = await _productOrderRepository.FindByCartId(request.CartId);
+                var allOrders = _productOrderRepository.FindByCartId(request.CartId);
 
                 if (allOrders.Any())
                 {

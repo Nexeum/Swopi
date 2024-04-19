@@ -1,8 +1,7 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using OrderMs.Dto.Request;
+using order_ms.dto.request;
 
-namespace OrderMs.Service
+namespace order_ms.service
 {
     public interface IOrderService
     {
