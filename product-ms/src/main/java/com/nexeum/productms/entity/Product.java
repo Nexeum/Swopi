@@ -18,5 +18,4 @@ public class Product {
     private BigDecimal productWholeSalePrice;
     private Long noOfStocks;
     private String productImageUrl;
-
 }
