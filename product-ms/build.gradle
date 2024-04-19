@@ -9,6 +9,9 @@ plugins {
 group = 'com.nexeum'
 version = '0.0.1-SNAPSHOT'
 
+bootJar {
+    mainClassName = 'com.nexeum.productms.Application'
+}
 
 sonar {
     properties {
