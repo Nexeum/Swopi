@@ -1,6 +1,5 @@
 package com.nexeum.productms.service;
 
-import com.nexeum.productms.entity.Product;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
