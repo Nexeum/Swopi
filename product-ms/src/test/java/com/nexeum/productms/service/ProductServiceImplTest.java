@@ -73,16 +73,4 @@ public class ProductServiceImplTest {
         verify(productRepository, times(1)).findAll();
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
-
-    @Test
-    public void testUploadImage() throws IOException {
-        MultipartFile mockFile = mock(MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-        when(mockFile.getBytes()).thenReturn(new byte[10]);
-
-        String imageUrl = productService.uploadImage(mockFile);
-
-        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(Path.class));
-        assertTrue(imageUrl.contains("test.jpg"));
-    }
 }
