@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductServiceImplTest {
+class ProductServiceImplTest {
 
     @Mock
     private ProductRepository productRepository;
@@ -55,7 +55,7 @@ public class ProductServiceImplTest {
     }
 
     @Test
-    public void testAddProduct() {
+    void testAddProduct() {
         when(productRepository.save(any(Product.class))).thenAnswer(i -> i.getArguments()[0]);
 
         ResponseEntity<Object> response = productService.addProduct(imageFile, name, description, brandName, pricePerUnit, productWholeSalePrice, noOfStocks);
@@ -65,7 +65,7 @@ public class ProductServiceImplTest {
     }
 
     @Test
-    public void testGetAllProducts() {
+    void testGetAllProducts() {
         when(productRepository.findAll()).thenReturn(Collections.emptyList());
 
         ResponseEntity<Object> response = productService.getAllProducts();

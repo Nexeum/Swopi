@@ -126,11 +126,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
-            throw new IllegalArgumentException("Uploaded file does not have a name");
-        }
-        File convertedFile = new File(originalFilename);
+        File convertedFile = Files.createTempFile(null, null).toFile();
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         }
