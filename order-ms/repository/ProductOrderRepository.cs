@@ -16,5 +16,10 @@ namespace order_ms.repository
         {
             return ProductOrders.Where(po => po.CartId == cartId).ToList();
         }
+        
+         public async Task<List<ProductOrder>> FindByCartIdAsync(long cartId)
+        {
+            return await ((IQueryable<ProductOrder>)ProductOrders).Where(po => po.CartId == cartId).ToListAsync();
+        }
     }
 }
