@@ -42,7 +42,7 @@ jobs:
 
       - name: Build SwopiUI
         run: |
-          cd SwopiUI
+          cd swopiUI
           npm install
           npm run build
 
@@ -53,7 +53,7 @@ jobs:
           path: |
             product-ms/build/libs/*.jar
             order-ms/bin/*
-            SwopiUI/public
+            swopiUI/public
 
   deploy:
     name: Deploy
@@ -92,5 +92,5 @@ jobs:
 
       - name: Deploy SwopiUI
         run: |
-          cd SwopiUI/public
+          cd swopiUI/public
           npx serve
