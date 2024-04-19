@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.Date;
 import java.util.List;
 
@@ -113,9 +114,10 @@ public class ProductServiceImpl implements ProductService {
             String filename = generateFileName(imageFile);
             imageUrl = bucketName + endpointUrl + "/" + filename;
             uploadFileTos3bucket(filename, file);
-            boolean isDeleted = file.delete();
-            if (!isDeleted) {
-                logger.error("Failed to delete file: " + file.getName());
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                logger.error("Failed to delete file: " + file.getName(), e);
             }
         } catch (Exception e) {
             logger.error("Error occurred while uploading image to S3 bucket", e);
