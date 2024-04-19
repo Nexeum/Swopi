@@ -114,15 +114,19 @@ public class ProductServiceImpl implements ProductService {
             String filename = generateFileName(imageFile);
             imageUrl = bucketName + endpointUrl + "/" + filename;
             uploadFileTos3bucket(filename, file);
-            try {
-                Files.delete(file.toPath());
-            } catch (IOException e) {
-                logger.error("Failed to delete file: " + file.getName(), e);
-            }
+            deleteTemporaryFile(file);
         } catch (Exception e) {
             logger.error("Error occurred while uploading image to S3 bucket", e);
         }
         return imageUrl;
+    }
+
+    private void deleteTemporaryFile(File file) {
+        try {
+            Files.delete(file.toPath());
+        } catch (IOException e) {
+            logger.error("Failed to delete file: " + file.getName(), e);
+        }
     }
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
