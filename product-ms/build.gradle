@@ -44,9 +44,11 @@ dependencies {
 
 jacocoTestReport {
     reports {
-        xml.required = true
+        xml.required = false
+        csv.required = false
     }
 }
+
 tasks.named('test') {
     useJUnitPlatform()
 }
