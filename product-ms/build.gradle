@@ -9,8 +9,13 @@ plugins {
 group = 'com.nexeum'
 version = '0.0.1-SNAPSHOT'
 
-application {
-    mainClassName = 'com.nexeum.productms.Application'
+jar {
+    manifest {
+        attributes(
+            'Class-Path': configurations.compileClasspath.collect { it.getName() }.join(' '),
+            'Main-Class': 'com.nexeum.productms.Application'
+        )
+    }
 }
 
 sonar {
