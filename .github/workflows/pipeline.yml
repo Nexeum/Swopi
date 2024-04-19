@@ -33,7 +33,7 @@ jobs:
       - name: Build product-ms
         run: |
           cd product-ms
-          ./gradlew build
+          ./gradlew bootJar
 
       - name: Build order-ms
         run: |
@@ -68,7 +68,8 @@ jobs:
 
       - name: Deploy product-ms
         run: |
-          java -jar product-ms/build/libs/*.jar
+          java -jar product-ms/build/libs/product-ms-0.0.1-SNAPSHOT.jar
+
 
       - name: Deploy order-ms
         run: |
