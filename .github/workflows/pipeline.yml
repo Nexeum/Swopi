@@ -76,5 +76,5 @@ jobs:
 
       - name: Deploy SwopiUI
         run: |
-          cd SwopiUI/public
+          cd swopiUI/public
           npx serve
