@@ -25,7 +25,7 @@ namespace order_ms.service
                 {
                     CartId = request.CartId,
                     OrderStatus = "In progress",
-                    OrderItems = request.OrderItems.Select(oi => new OrderItem
+                    OrderItems = (request.OrderItems ?? new List<OrderProductItem>()).Select(oi => new OrderItem
                     {
                         ProductId = oi.ProductId,
                         ProductName = oi.ProductName,
@@ -61,6 +61,14 @@ namespace order_ms.service
             try
             {
                 var productOrder = await _productOrderRepository.ProductOrders.FindAsync(request.OrderId);
+
+                if (productOrder == null)
+                {
+                    serviceResponse.Code = "404";
+                    serviceResponse.Message = "Order not found";
+                    return new NotFoundObjectResult(serviceResponse);
+                }
+
                 productOrder.OrderStatus = "Cancelled";
 
                 _productOrderRepository.ProductOrders.Update(productOrder);
@@ -84,7 +92,7 @@ namespace order_ms.service
         {
             try
             {
-                var allOrders = _productOrderRepository.FindByCartId(request.CartId);
+                var allOrders = await _productOrderRepository.FindByCartIdAsync(request.CartId);
 
                 if (allOrders.Any())
                 {
