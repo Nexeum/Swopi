@@ -3,7 +3,7 @@ package com.nexeum.userms.dto.response;
 import lombok.Data;
 
 @Data
-public class UserInfoRequest {
+public class UserInfoResponse {
     private Long userId;
     private String username;
     private String email;
