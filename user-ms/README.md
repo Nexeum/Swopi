@@ -58,7 +58,7 @@ The API provides the following endpoints:
 
 ## Running the Application
 
-You can run the application from your IDE by running the `main` method in the `Application` class. The application will start on port 8085.
+You can run the application from your IDE by running the `main` method in the `Application` class. The application will start on port 8083.
 
 You can also run the application from the command line using Gradle:
 
@@ -71,7 +71,7 @@ You can also run the application from the command line using Gradle:
 You can test the API using any HTTP client such as curl or Postman. Here is an example of how to test the create-user endpoint using curl:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"userId":"1", "email":"test@example.com", "cartId":"1", "address":{"addressLine":"123 Main St", "city":"Springfield", "pin":"12345", "state":"IL", "country":"USA"}}' http://localhost:8085/api/user/create-user
+curl -X POST -H "Content-Type: application/json" -d '{"userId":"1", "email":"test@example.com", "cartId":"1", "address":{"addressLine":"123 Main St", "city":"Springfield", "pin":"12345", "state":"IL", "country":"USA"}}' http://localhost:8083/api/user/create-user
 ```
 
 Replace the values in the JSON object with your own data.
