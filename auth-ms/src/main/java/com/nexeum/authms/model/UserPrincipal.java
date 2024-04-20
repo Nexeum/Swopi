@@ -3,6 +3,7 @@ package com.nexeum.authms.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nexeum.authms.entity.User;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@Data
 public class UserPrincipal implements UserDetails {
     @Serial
     private static final long serialVersionUID = 1L;
