@@ -1,10 +1,8 @@
 <h1>Welcome to Swopi 👋</h1>
 
-> Ecommerce Platform
+## BackLog (Scrum)
 
-## Description
-
-Swopi is an ecommerce platform built with multiple microservices. It includes services for handling products, orders, and an API Gateway for routing requests.
+[Backlog del Proyecto](https://github.com/users/Nexeum/projects/4)
 
 ## High Level Architecture Diagram
 
@@ -19,6 +17,8 @@ Swopi is an ecommerce platform built with multiple microservices. It includes se
 | Product       | Java     | Spring Boot |
 | Order         | C#       | .NET        |
 | Api Gateway   | Elixir   | Phoenix     |
+| Auth          | Java     | Spring Boot |
+| User          | Java     | Spring Boot |
 
 ## Author
 
