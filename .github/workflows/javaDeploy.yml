@@ -8,8 +8,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
-        project: ['auth-ms', 'product-ms', 'user-ms']
+        project: ['product-ms', 'auth-ms', 'user-ms']
     permissions:
       contents: read
       packages: write
