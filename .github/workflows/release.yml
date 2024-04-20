@@ -1,43 +1,28 @@
-name: Create version release
-
 on:
-  workflow_dispatch:
-    inputs:
-      versionType:
-        description: Version type
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-          - premajor
-          - preminor
-          - prepatch
-          - prerelease
+  push:
+    tags:
+      - 'v*'
+
+name: Create Release
 
 jobs:
-  create-version:
+  build:
+    name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         with:
-          node-version: 14
-
-      - run: |
-          git config user.name ${{ secrets.GIT_USER_NAME }}
-          git config user.email ${{ secrets.GIT_USER_EMAIL }}
-
-      - name: Run tests
-        run: |
-          cd Swopi
-
-      - name: Generate new version ${{ github.event.inputs.versionType }}
-        run: |
-          ./gradlew release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=${{ github.event.inputs.versionType }}
-
-      - name: Push the tags
-        run: git push origin master --tags
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
