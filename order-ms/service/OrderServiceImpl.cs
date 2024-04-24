@@ -10,11 +10,13 @@ namespace order_ms.service
     {
         private readonly ProductOrderRepository _productOrderRepository;
 
-        public OrderService(ProductOrderRepository productOrderRepository)
+        private readonly ILogger<OrderService> _logger;
+
+        public OrderService(ProductOrderRepository productOrderRepository, ILogger<OrderService> logger)
         {
             _productOrderRepository = productOrderRepository;
+            _logger = logger;
         }
-
         public async Task<IActionResult> CreateOrder(CreateOrderRequest request)
         {
             var serviceResponse = new ServiceResponse();
@@ -23,7 +25,7 @@ namespace order_ms.service
             {
                 var productOrder = new ProductOrder
                 {
-                    CartId = request.CartId,
+                    CartId = request.CartId.ToString(),
                     OrderStatus = "In progress",
                     OrderItems = (request.OrderItems ?? new List<OrderProductItem>()).Select(oi => new OrderItem
                     {
@@ -37,30 +39,31 @@ namespace order_ms.service
                     TotalOrderPrice = request.TotalOrderPrice
                 };
 
-                await _productOrderRepository.ProductOrders.AddAsync(productOrder);
-                await _productOrderRepository.SaveChangesAsync();
+                await _productOrderRepository.InsertOrderAsync(productOrder);
 
                 serviceResponse.Code = "200";
                 serviceResponse.Message = "Order Placed Successfully";
 
                 return new OkObjectResult(serviceResponse);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while cancelling the order");
+
                 serviceResponse.Code = "500";
                 serviceResponse.Message = "Internal Server Error";
 
                 return new OkObjectResult(serviceResponse);
             }
         }
-
+        
         public async Task<IActionResult> CancelOrder(CancelOrderRequest request)
         {
             var serviceResponse = new ServiceResponse();
 
             try
             {
-                var productOrder = await _productOrderRepository.ProductOrders.FindAsync(request.OrderId);
+                var productOrder = await _productOrderRepository.FindByIdAsync(request.OrderId);
 
                 if (productOrder == null)
                 {
@@ -71,8 +74,7 @@ namespace order_ms.service
 
                 productOrder.OrderStatus = "Cancelled";
 
-                _productOrderRepository.ProductOrders.Update(productOrder);
-                await _productOrderRepository.SaveChangesAsync();
+                await _productOrderRepository.UpdateOrderAsync(productOrder);
 
                 serviceResponse.Code = "200";
                 serviceResponse.Message = "Order Cancelled";
@@ -83,16 +85,16 @@ namespace order_ms.service
             {
                 serviceResponse.Code = "500";
                 serviceResponse.Message = "Internal Server Error";
-
+                
                 return new StatusCodeResult(500);
             }
         }
 
-        public async Task<IActionResult> GetAllOrders(GetAllOrderRequest request)
+        public async Task<IActionResult> GetAllOrders()
         {
             try
             {
-                var allOrders = await _productOrderRepository.FindByCartIdAsync(request.CartId);
+                var allOrders = await _productOrderRepository.GetAllOrdersAsync();
 
                 if (allOrders.Any())
                 {

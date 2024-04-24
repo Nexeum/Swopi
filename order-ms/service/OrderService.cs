@@ -9,6 +9,6 @@ namespace order_ms.service
 
         Task<IActionResult> CancelOrder(CancelOrderRequest request);
 
-        Task<IActionResult> GetAllOrders(GetAllOrderRequest request);
+        Task<IActionResult> GetAllOrders();
     }
 }

@@ -12,8 +12,8 @@ namespace order_ms.controller
 
         public OrderController(IOrderService orderService) => _orderService = orderService;
 
-        [HttpPost("get_all_orders")]
-        public async Task<IActionResult> GetAllOrders([FromBody] GetAllOrderRequest request) => await _orderService.GetAllOrders(request);
+        [HttpGet("get_all_orders")]
+        public async Task<IActionResult> GetAllOrders() => await _orderService.GetAllOrders();
 
         [HttpPost("create_order")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request) => await _orderService.CreateOrder(request);

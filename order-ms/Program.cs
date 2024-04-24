@@ -1,16 +1,27 @@
 using order_ms.service;
 using order_ms.repository;
-using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+        });
+});
+
+// Set up configuration
+builder.Configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
+
 // Add services to the container.
-builder.Services.AddControllers(); // Add this line
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Configure DbContext
-builder.Services.AddDbContext<ProductOrderRepository>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add your services and repositories to the DI container
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -23,9 +34,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHttpsRedirection();
+    app.UseCors("AllowAllOrigins");
 }
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

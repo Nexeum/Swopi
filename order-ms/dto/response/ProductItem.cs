@@ -4,7 +4,7 @@ namespace order_ms.dto.response
 {
     public class ProductItem
     {
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public long ProductId { get; set; }
         public string? ProductName { get; set; } = string.Empty;
         public long ProductQuantity { get; set; }
